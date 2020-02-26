@@ -1,0 +1,235 @@
+PARSER_BEGIN(CLang)
+public class CLang
+{
+    
+}
+PARSER_END(CLang)
+
+SKIP : {
+ " "
+|  "\t"
+|  "\n"
+|  "\r"
+|  <"//" (~["\n","\r"])* ("\n" | "\r" | "\r\n")>
+|  <"/*" (~["*"])* "*" ("*" | ~["*","/"] (~["*"])* "*")* "/">
+}
+
+TOKEN : {
+    <TYPE: <INT> | <CHAR> | <VOID> >     |
+    <WHILE:  "while"  >                  |
+    <RETURN: "return"  >                 |
+    <FOR:    "for"  >                    |
+    <IF:     "if"  >                     |
+    <#INT:   "int" >                     |
+    <#CHAR:  "char" >                    |
+    <#VOID:  "void" >                    
+}
+
+TOKEN: {
+    <LRBRACKET: "(" > |
+    <RRBRACKET: ")" > |
+    <COMMA:     "," > |
+    <LCBRACKET: "{" > |
+    <RCBRACKET: "}" > |
+    <SEMICOLON: ";" > |
+    <ASSIGN:    "=" > |
+    <APSOTREPHE:"'" > |
+    <EQ:       "==" > |
+    <LT:       "<"  > |
+    <LTE:      "<=" > |
+    <GT:       ">"  > |
+    <GTE:      ">=" > |
+    <NOT:      "!"  > |
+    <NEQ:      "!=" > |
+    <AND:      "&&" > |
+    <OR:       "||" > |
+    <ADD:       "+" > |
+    <SUB:       "-" > |
+    <MUL:       "*" > |
+    <DIV:       "/" > |
+    <MOD:       "%" >  
+}
+   
+TOKEN: {
+    <ID: (<LETTER> (<LETTER> | <DIGIT> | <ZERO>)*)
+    |(<LRBRACKET>  <LETTER> (<LETTER> | <DIGIT> | <ZERO>)* <RRBRACKET>) >     |
+    <NUMBER: <DIGIT> (<DIGIT> | <ZERO>)* | <ZERO> >                 |
+    <CHAR_VALUE: <APSOTREPHE> (<LETTER> | <DIGIT>) <APSOTREPHE> >   | 
+    <#LETTER: ["a"-"z","A"-"Z"] >                                   |
+    <#DIGIT: ["1"-"9"] >                                            |
+    <#ZERO: "0" >
+}
+
+void constExpressionDef() : {}
+{
+    <ID>                                        |
+    <NUMBER>                                    |
+    <CHAR_VALUE>                                
+}
+
+void listExpressionDef()   : {}
+{
+    expressionDef() (<COMMA> expressionDef())*
+}
+
+void functionCall()   : {}
+{
+    <ID> <LRBRACKET> [listExpressionDef()] <RRBRACKET>
+}
+
+void unaryExpressionDef() : {}
+{
+    
+    LOOKAHEAD(functionCall())functionCall()     |
+    <NOT> unaryExpressionDef()                  |
+    <LRBRACKET> unaryExpressionDef() <RRBRACKET>     |
+    constExpressionDef()
+}
+
+void mulExpressionDef() : {}
+{
+    unaryExpressionDef() [ (<MUL> | <DIV> | <MOD>) mulExpressionDef() ]
+}
+
+void addExpressionDef() : {}
+{
+    mulExpressionDef() [ (<ADD> | <SUB>) addExpressionDef() ]
+}
+
+void binaryBoolExpressionCompareDef() : {}
+{
+    addExpressionDef() [ binaryBoolOperatorCompareDef() binaryBoolExpressionCompareDef() ]
+}
+
+void binaryExpressionEqDef() : {}
+{
+    binaryBoolExpressionCompareDef() [ (<EQ> | <NEQ> ) binaryExpressionEqDef() ] 
+}
+
+void binaryBoolExpressionAndDef() : {}
+{
+    binaryExpressionEqDef() [ <AND> binaryBoolExpressionAndDef() ]
+}
+
+void binaryBoolExpressionOrDef() : {}
+{
+    binaryBoolExpressionAndDef() [ <OR> binaryBoolExpressionOrDef() ]
+}
+
+void binaryBoolOperatorCompareDef() : {}
+{
+    
+    <LT> | <LTE> | <GT> | <GTE>
+}
+
+void boolExpressionDef() : {}
+{
+   
+    binaryBoolExpressionOrDef()
+}
+
+void assignExpressionDef() : {}
+{
+    <ID> <ASSIGN> expressionDef()    
+}
+
+void expressionDef() : {}
+{
+    LOOKAHEAD(2) assignExpressionDef() |   
+    boolExpressionDef()
+}
+
+void varAssignDefInInit() : {}
+{
+    <ASSIGN> expressionDef()
+}
+
+void varDefineDef() : {}
+{
+    <TYPE> <ID> [varAssignDefInInit()]
+}
+
+void StatementBlockDef() : {}
+{
+    <LCBRACKET> (StatementDef())* <RCBRACKET>
+}
+
+void paramDef() : {}
+{
+     <TYPE> [<ID>|<LRBRACKET> paramDef() <RRBRACKET>]
+}
+
+void paramListDef() : {}
+{
+    paramDef() (<COMMA> paramDef())*
+}
+
+void functionDef() : {}
+{
+    <TYPE> <ID> <LRBRACKET> [paramListDef()] <RRBRACKET> StatementBlockDef()
+}
+
+void sourceCodeDef() : {}
+{   
+    LOOKAHEAD( varDefineDef() <SEMICOLON> ) varDefineDef() <SEMICOLON> | functionDef()
+}
+
+void Start() : {}
+{
+    (sourceCodeDef())*
+}
+
+void varAssignDef() : {}
+{
+    <ID> <ASSIGN> expressionDef()
+}
+
+void constExpressionOrBinaryDef() : {}
+{
+    constExpressionDef()                            |
+    <NOT>     constExpressionOrBinaryDef()               | 
+    <LRBRACKET>constExpressionOrBinaryDef() <RRBRACKET>    
+}
+
+void ReturnStatementDef() : {}
+{
+    <RETURN> [expressionDef()]
+}
+
+void WhileStatementDef() : {}
+{
+    <WHILE> <LRBRACKET> expressionDef()
+    <RRBRACKET> (StatementBlockDef() | StatementDef())
+}
+
+void ForStatementDef() : {}
+{
+    <FOR>  <LRBRACKET> (varDefineDef()|
+    LOOKAHEAD(varAssignDef())varAssignDef()|
+    <ID>)
+    (<COMMA>(LOOKAHEAD(varAssignDef())varAssignDef()|<ID>))* 
+    <SEMICOLON>boolExpressionDef()
+    <SEMICOLON>expressionDef() (<COMMA> expressionDef())*
+    <RRBRACKET> (StatementBlockDef() | StatementDef())
+}
+
+void IfStatementDef() : {}
+{
+    <IF> <LRBRACKET> expressionDef() <RRBRACKET> (StatementBlockDef() | StatementDef())
+}
+
+void StatementDef() : {}
+{
+    varDefineDef()        <SEMICOLON>    |
+    expressionDef()       <SEMICOLON>    |
+    IfStatementDef()                     |
+    ReturnStatementDef()    <SEMICOLON>  |
+    ForStatementDef()                    |
+    WhileStatementDef()
+}
+
+
+
+
+
+
