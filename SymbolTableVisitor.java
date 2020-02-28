@@ -8,6 +8,7 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
     Vector<String> _data;
     Vector<String> _text;
     int stackIndex = 0;
+    
 
     public static class SymbolTableEntry
      {
@@ -117,7 +118,8 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
         return super.visit(node, data);
     }
     @Override
-    public Object visit(ASTparamListDef node, Object data) {
+    public Object visit(ASTparamListDef node, Object data)
+     {
         return super.visit(node, data);
     }
     @Override
@@ -147,12 +149,35 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
         return super.visit(node, data);
     }
     @Override
-    public Object visit(ASTvarAssignDef node, Object data) {
-        return super.visit(node, data);
+    public Object visit(ASTlistVarDefineDef node, Object data) 
+    {
+        
+        if(node.children.length > 0)
+        {
+            boolean isInt = node.firstToken.image.equals("int");
+            if (isInt)
+                this.stackIndex+=4;
+            else
+                this.stackIndex++;
+
+            SymbolTableEntry e = new SymbolTableEntry(node.firstToken.next.image, node.firstToken.image, this.stackIndex);
+            
+            if (node.children.length > 0)
+            {
+                data = node.children[0].jjtAccept(this, data);
+                _text.add("pop rax");
+                _text.add(String.format("mov %s [rbp - %d], %s", isInt ? "dword" : "byte", e.offset, isInt ? "eax" : "al"));
+            } 
+            
+            put(e);
+        
+        }
+        return data;      
     }
     @Override
-    public Object visit(ASTvarDefineDef node, Object data) {
-;
+    public Object visit(ASTvarDefineDef node, Object data) 
+    {
+
 
         boolean isInt = node.firstToken.image.equals("int");
         if (isInt)
@@ -205,12 +230,25 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
     public Object visit(ASTaddExpressionDef node, Object data) {
         data = node.children[0].jjtAccept(this, data);
         if (node.children.length > 1)
-        {
-            data = node.children[1].jjtAccept(this, data);
-            _text.add("pop rbx");
-            _text.add("pop rax");
-            _text.add("add rax, rbx");
-            _text.add("push rax");
+        {      String e= node.firstToken.next.image;
+
+            if(e.equals("+"))
+           {
+                data = node.children[1].jjtAccept(this, data);
+                _text.add("pop rbx");
+                _text.add("pop rax");
+                _text.add("add rax, rbx");
+                _text.add("push rax");
+           }
+          else if(e.equals("-"))
+           {
+                data = node.children[1].jjtAccept(this, data);
+                _text.add("pop rbx");
+                _text.add("pop rax");
+                _text.add("sub rax, rbx");
+                _text.add("push rax");
+           }
+            
         }
 
         return data;

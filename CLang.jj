@@ -51,8 +51,7 @@ TOKEN: {
 }
    
 TOKEN: {
-    <ID: (<LETTER> (<LETTER> | <DIGIT> | <ZERO>)*)
-    |(<LRBRACKET>  <LETTER> (<LETTER> | <DIGIT> | <ZERO>)* <RRBRACKET>) >     |
+    <  ID:<LETTER> (<LETTER> | <DIGIT> | <ZERO>)*>     |
     <NUMBER: <DIGIT> (<DIGIT> | <ZERO>)* | <ZERO> >                 |
     <CHAR_VALUE: <APSOTREPHE> (<LETTER> | <DIGIT>) <APSOTREPHE> >   | 
     <#LETTER: ["a"-"z","A"-"Z"] >                                   |
@@ -60,9 +59,15 @@ TOKEN: {
     <#ZERO: "0" >
 }
 
+void idExpressionDef() : {}
+{
+    <LRBRACKET>idExpressionDef()<RRBRACKET>
+    | <ID>             
+}
+
 void constExpressionDef() : {}
 {
-    <ID>                                        |
+    <ID>                                         |
     <NUMBER>                                    |
     <CHAR_VALUE>                                
 }
@@ -74,15 +79,12 @@ void listExpressionDef()   : {}
 
 void functionCall()   : {}
 {
-    <ID> <LRBRACKET> [listExpressionDef()] <RRBRACKET>
+    idExpressionDef()<LRBRACKET>[listExpressionDef() ]<RRBRACKET>
 }
 
 void unaryExpressionDef() : {}
-{
-    
-    LOOKAHEAD(functionCall())functionCall()     |
-    <NOT> unaryExpressionDef()                  |
-    <LRBRACKET> unaryExpressionDef() <RRBRACKET>     |
+{                     
+    LOOKAHEAD(functionCall() )functionCall()        |
     constExpressionDef()
 }
 
@@ -124,13 +126,15 @@ void binaryBoolOperatorCompareDef() : {}
 
 void boolExpressionDef() : {}
 {
-   
+    <NOT>boolExpressionDef()   |
+    LOOKAHEAD(2)
+    <LRBRACKET> boolExpressionDef()<RRBRACKET>|
     binaryBoolExpressionOrDef()
 }
 
 void assignExpressionDef() : {}
 {
-    <ID> <ASSIGN> expressionDef()    
+   idExpressionDef()<ASSIGN> expressionDef()    
 }
 
 void expressionDef() : {}
@@ -143,10 +147,15 @@ void varAssignDefInInit() : {}
 {
     <ASSIGN> expressionDef()
 }
+void listVarDefineDef() : {}
+{
+    <TYPE> idExpressionDef() [varAssignDefInInit()]
+    (<COMMA>idExpressionDef() [varAssignDefInInit()])*
+}
 
 void varDefineDef() : {}
 {
-    <TYPE> <ID> [varAssignDefInInit()]
+    <TYPE> idExpressionDef() [varAssignDefInInit()]
 }
 
 void StatementBlockDef() : {}
@@ -156,7 +165,7 @@ void StatementBlockDef() : {}
 
 void paramDef() : {}
 {
-     <TYPE> [<ID>|<LRBRACKET> paramDef() <RRBRACKET>]
+     <TYPE> idExpressionDef()
 }
 
 void paramListDef() : {}
@@ -166,7 +175,7 @@ void paramListDef() : {}
 
 void functionDef() : {}
 {
-    <TYPE> <ID> <LRBRACKET> [paramListDef()] <RRBRACKET> StatementBlockDef()
+    paramDef() <LRBRACKET> [paramListDef()] <RRBRACKET> StatementBlockDef()
 }
 
 void sourceCodeDef() : {}
@@ -179,10 +188,7 @@ void Start() : {}
     (sourceCodeDef())*
 }
 
-void varAssignDef() : {}
-{
-    <ID> <ASSIGN> expressionDef()
-}
+
 
 void constExpressionOrBinaryDef() : {}
 {
@@ -205,11 +211,11 @@ void WhileStatementDef() : {}
 void ForStatementDef() : {}
 {
     <FOR>  <LRBRACKET> (varDefineDef()|
-    LOOKAHEAD(varAssignDef())varAssignDef()|
-    <ID>)
-    (<COMMA>(LOOKAHEAD(varAssignDef())varAssignDef()|<ID>))* 
+    LOOKAHEAD(assignExpressionDef())assignExpressionDef()|
+   idExpressionDef() )
+    (<COMMA>(LOOKAHEAD(assignExpressionDef())assignExpressionDef()|idExpressionDef() ))* 
     <SEMICOLON>boolExpressionDef()
-    <SEMICOLON>expressionDef() (<COMMA> expressionDef())*
+    <SEMICOLON>listExpressionDef() 
     <RRBRACKET> (StatementBlockDef() | StatementDef())
 }
 
@@ -220,7 +226,7 @@ void IfStatementDef() : {}
 
 void StatementDef() : {}
 {
-    varDefineDef()        <SEMICOLON>    |
+    listVarDefineDef()        <SEMICOLON>    |
     expressionDef()       <SEMICOLON>    |
     IfStatementDef()                     |
     ReturnStatementDef()    <SEMICOLON>  |

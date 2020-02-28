@@ -2,6 +2,7 @@
 public interface CLangVisitor
 {
   public Object visit(SimpleNode node, Object data);
+  public Object visit(ASTidExpressionDef node, Object data);
   public Object visit(ASTconstExpressionDef node, Object data);
   public Object visit(ASTlistExpressionDef node, Object data);
   public Object visit(ASTfunctionCall node, Object data);
@@ -17,6 +18,7 @@ public interface CLangVisitor
   public Object visit(ASTassignExpressionDef node, Object data);
   public Object visit(ASTexpressionDef node, Object data);
   public Object visit(ASTvarAssignDefInInit node, Object data);
+  public Object visit(ASTlistVarDefineDef node, Object data);
   public Object visit(ASTvarDefineDef node, Object data);
   public Object visit(ASTStatementBlockDef node, Object data);
   public Object visit(ASTparamDef node, Object data);
@@ -24,7 +26,6 @@ public interface CLangVisitor
   public Object visit(ASTfunctionDef node, Object data);
   public Object visit(ASTsourceCodeDef node, Object data);
   public Object visit(ASTStart node, Object data);
-  public Object visit(ASTvarAssignDef node, Object data);
   public Object visit(ASTconstExpressionOrBinaryDef node, Object data);
   public Object visit(ASTReturnStatementDef node, Object data);
   public Object visit(ASTWhileStatementDef node, Object data);
@@ -32,4 +33,4 @@ public interface CLangVisitor
   public Object visit(ASTIfStatementDef node, Object data);
   public Object visit(ASTStatementDef node, Object data);
 }
-/* JavaCC - OriginalChecksum=d31285837c78b0af9c510a49462771f1 (do not edit this line) */
+/* JavaCC - OriginalChecksum=ecd469aaab38052795637fea8cd3bc86 (do not edit this line) */
