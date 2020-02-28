@@ -836,8 +836,6 @@ void Start() : {/*@bgen(jjtree) Start */
 /*@egen*/
 }
 
-
-
 void constExpressionOrBinaryDef() : {/*@bgen(jjtree) constExpressionOrBinaryDef */
   ASTconstExpressionOrBinaryDef jjtn000 = new ASTconstExpressionOrBinaryDef(JJTCONSTEXPRESSIONORBINARYDEF);
   boolean jjtc000 = true;
@@ -1021,10 +1019,10 @@ void StatementDef() : {/*@bgen(jjtree) StatementDef */
 {/*@bgen(jjtree) StatementDef */
     try {
 /*@egen*/
-    listVarDefineDef()        <SEMICOLON>    |
+    listVarDefineDef()    <SEMICOLON>    |
     expressionDef()       <SEMICOLON>    |
     IfStatementDef()                     |
-    ReturnStatementDef()    <SEMICOLON>  |
+    ReturnStatementDef()  <SEMICOLON>    |
     ForStatementDef()                    |
     WhileStatementDef()/*@bgen(jjtree)*/
     } catch (Throwable jjte000) {

@@ -159,7 +159,9 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
                 this.stackIndex+=4;
             else
                 this.stackIndex++;
-
+            Token c=node.firstToken.next;
+    
+            
             SymbolTableEntry e = new SymbolTableEntry(node.firstToken.next.image, node.firstToken.image, this.stackIndex);
             
             if (node.children.length > 0)

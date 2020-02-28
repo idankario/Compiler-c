@@ -1606,16 +1606,16 @@ if (jjtc000) {
     return false;
   }
 
-  static private boolean jj_3_6()
- {
-    if (jj_3R_9()) return true;
-    return false;
-  }
-
   static private boolean jj_3R_29()
  {
     if (jj_scan_token(AND)) return true;
     if (jj_3R_23()) return true;
+    return false;
+  }
+
+  static private boolean jj_3_6()
+ {
+    if (jj_3R_9()) return true;
     return false;
   }
 
