@@ -46,8 +46,7 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
             symbols.put(s.name, s);
             return;
         }
-        System.out.println("Error: redeclaration of with no linkage");
-        System.out.println( s.name);
+        System.err.println(String.format("Error: redeclaration of %s  with no linkage",s.name));     
         System.exit(1);
     }
     @Override
@@ -132,12 +131,30 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
         return super.visit(node, data);
     }
     @Override
-    public Object visit(ASTassignExpressionDef node, Object data) {
+    public Object visit(ASTidExpressionDef node, Object data) {
+        System.out.println("fssffdfdd");
+        System.out.println(node.firstToken.image);
         return super.visit(node, data);
     }
     @Override
-    public Object visit(ASTexpressionDef node, Object data) {
+    public Object visit(ASTassignExpressionDef node, Object data) {
+        Object o = super.visit(node, data);
+        System.out.println(node.firstToken.image);
+        return o;
+    }
+    @Override
+    public Object visit(ASTexpressionDef node, Object data)
+    {
 
+        if(node.firstToken.kind==CLang.ID
+         && resolve(node.firstToken.image)==null)
+        {
+            System.err.println(String.format("error:Variable %s undeclared (first use in this function) at %d : %d",
+                                                node.firstToken.image,
+                                                node.firstToken.beginLine,
+                                                node.firstToken.beginColumn));
+            System.exit(1);
+        }
         return super.visit(node, data);
     }
     @Override
@@ -152,17 +169,15 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
     @Override
     public Object visit(ASTparamDef node, Object data) 
     {
-        
         Object res = super.visit(node, data);
-
         SymbolTableEntry e = new SymbolTableEntry(node.firstToken.next.image, node.firstToken.image, this.stackIndex);
         this.stackIndex += 4;
         put(e);
-        
         return res;
     }
     @Override
-    public Object visit(ASTfunctionDef node, Object data) {
+    public Object visit(ASTfunctionDef node, Object data)
+     {
         _text.add(String.format("%s:" ,node.firstToken.next.image));
         _text.add("push rbp");
         _text.add("mov rbp, rsp");
@@ -174,7 +189,8 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
         // return super.visit(node, data);
     }
     @Override
-    public Object visit(ASTvarAssignDefInInit node, Object data) {
+    public Object visit(ASTvarAssignDefInInit node, Object data) 
+    {   
         return super.visit(node, data);
     }
     @Override
@@ -254,6 +270,7 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
     }
     @Override
     public Object visit(ASTunaryExpressionDef node, Object data) {
+        
         return super.visit(node, data);
     }
     @Override
@@ -297,7 +314,7 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
 
     @Override
     public Object visit(ASTconstExpressionDef node, Object data) {
-
+       
         if (node.firstToken.kind == CLang.ID)
         {
             SymbolTableEntry e = resolve(node.firstToken.image);
