@@ -1,8 +1,6 @@
 
 int main()
 {
-int x=4;
-x+4;
-return x;
 
+int x=3+5;
 }

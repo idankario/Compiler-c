@@ -90,7 +90,8 @@ void unaryExpressionDef() : {}
 
 void mulExpressionDef() : {}
 {
-    unaryExpressionDef() [ (<MUL> | <DIV> | <MOD>) mulExpressionDef() ]
+     LOOKAHEAD(2 )<LRBRACKET>mulExpressionDef() <RRBRACKET>|
+   unaryExpressionDef() [ (<MUL> | <DIV> | <MOD>) mulExpressionDef() ]
 }
 
 void addExpressionDef() : {}
@@ -127,8 +128,8 @@ void binaryBoolOperatorCompareDef() : {}
 void boolExpressionDef() : {}
 {
     <NOT>boolExpressionDef()   |
-    LOOKAHEAD(2)
-    <LRBRACKET> boolExpressionDef()<RRBRACKET>|
+   
+    LOOKAHEAD(2) <LRBRACKET>boolExpressionDef()<RRBRACKET>|
     binaryBoolExpressionOrDef()
 }
 
@@ -224,7 +225,7 @@ void IfStatementDef() : {}
 
 void StatementDef() : {}
 {
-    listVarDefineDef()    <SEMICOLON>    |
+    varDefineDef()        <SEMICOLON>    |
     expressionDef()       <SEMICOLON>    |
     IfStatementDef()                     |
     ReturnStatementDef()  <SEMICOLON>    |

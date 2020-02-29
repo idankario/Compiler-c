@@ -225,29 +225,30 @@ void mulExpressionDef() : {/*@bgen(jjtree) mulExpressionDef */
   jjtn000.jjtSetFirstToken(getToken(1));
 /*@egen*/}
 {/*@bgen(jjtree) mulExpressionDef */
-    try {
+     try {
 /*@egen*/
-    unaryExpressionDef() [ (<MUL> | <DIV> | <MOD>) mulExpressionDef() ]/*@bgen(jjtree)*/
-    } catch (Throwable jjte000) {
-      if (jjtc000) {
-        jjtree.clearNodeScope(jjtn000);
-        jjtc000 = false;
-      } else {
-        jjtree.popNode();
-      }
-      if (jjte000 instanceof RuntimeException) {
-        throw (RuntimeException)jjte000;
-      }
-      if (jjte000 instanceof ParseException) {
-        throw (ParseException)jjte000;
-      }
-      throw (Error)jjte000;
-    } finally {
-      if (jjtc000) {
-        jjtree.closeNodeScope(jjtn000, true);
-        jjtn000.jjtSetLastToken(getToken(0));
-      }
-    }
+     LOOKAHEAD(2 )<LRBRACKET>mulExpressionDef() <RRBRACKET>|
+   unaryExpressionDef() [ (<MUL> | <DIV> | <MOD>) mulExpressionDef() ]/*@bgen(jjtree)*/
+     } catch (Throwable jjte000) {
+       if (jjtc000) {
+         jjtree.clearNodeScope(jjtn000);
+         jjtc000 = false;
+       } else {
+         jjtree.popNode();
+       }
+       if (jjte000 instanceof RuntimeException) {
+         throw (RuntimeException)jjte000;
+       }
+       if (jjte000 instanceof ParseException) {
+         throw (ParseException)jjte000;
+       }
+       throw (Error)jjte000;
+     } finally {
+       if (jjtc000) {
+         jjtree.closeNodeScope(jjtn000, true);
+         jjtn000.jjtSetLastToken(getToken(0));
+       }
+     }
 /*@egen*/
 }
 
@@ -446,8 +447,8 @@ void boolExpressionDef() : {/*@bgen(jjtree) boolExpressionDef */
     try {
 /*@egen*/
     <NOT>boolExpressionDef()   |
-    LOOKAHEAD(2)
-    <LRBRACKET> boolExpressionDef()<RRBRACKET>|
+   
+    LOOKAHEAD(2) <LRBRACKET>boolExpressionDef()<RRBRACKET>|
     binaryBoolExpressionOrDef()/*@bgen(jjtree)*/
     } catch (Throwable jjte000) {
       if (jjtc000) {
@@ -1019,7 +1020,7 @@ void StatementDef() : {/*@bgen(jjtree) StatementDef */
 {/*@bgen(jjtree) StatementDef */
     try {
 /*@egen*/
-    listVarDefineDef()    <SEMICOLON>    |
+    varDefineDef()        <SEMICOLON>    |
     expressionDef()       <SEMICOLON>    |
     IfStatementDef()                     |
     ReturnStatementDef()  <SEMICOLON>    |
