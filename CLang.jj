@@ -176,7 +176,7 @@ void paramListDef() : {}
 
 void functionDef() : {}
 {
-    paramDef() <LRBRACKET> [paramListDef()] <RRBRACKET> StatementBlockDef()
+   <TYPE> <ID> <LRBRACKET> [paramListDef()] <RRBRACKET> StatementBlockDef()
 }
 
 void sourceCodeDef() : {}

@@ -11,7 +11,7 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
     
 
     public static class SymbolTableEntry
-     {
+    {
         public String name;
         public String type;
         public int offset;
@@ -26,22 +26,29 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
 
     HashMap<String, SymbolTableEntry> symbols = new HashMap<>();
 
-    public SymbolTableVisitor() {
+    public SymbolTableVisitor() 
+    {
         this._text = new Vector<>();
         this._data = new Vector<>();
-
     }
 
 
 
-    public SymbolTableEntry resolve(String s) {
-        
+    public SymbolTableEntry resolve(String s) 
+    {
         return symbols.get(s);
     }
 
     public void put(SymbolTableEntry s)
     {
-        symbols.put(s.name, s);
+        if(symbols.get(s.name)==null)
+        {
+            symbols.put(s.name, s);
+            return;
+        }
+        System.out.println("Error: redeclaration of with no linkage");
+        System.out.println( s.name);
+        System.exit(1);
     }
     @Override
     public Object visit(ASTStart node, Object data) {
@@ -71,14 +78,33 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
     public Object visit(ASTmulExpressionDef node, Object data) {
         data = node.children[0].jjtAccept(this, data);
         if (node.children.length > 1)
-        {
-            data = node.children[1].jjtAccept(this, data);
-            _text.add("pop rbx");
-            _text.add("pop rax");
-            _text.add("sal rax, rbx");
-            _text.add("push rax");
+        {  
+            String e= node.firstToken.next.image;
+            if(e.equals("*"))
+           {
+                data = node.children[1].jjtAccept(this, data);
+                _text.add("pop rbx");
+                _text.add("pop rax");
+                _text.add("mul rax; rbx");
+                _text.add("push rax");
+           }
+          else if(e.equals("/"))
+           {
+                data = node.children[1].jjtAccept(this, data);
+                _text.add("pop rbx");
+                _text.add("pop rax");
+                _text.add("div rax; rbx");
+                _text.add("push rax");
+           }
+           else if(e.equals("%"))
+           {
+                data = node.children[1].jjtAccept(this, data);
+                _text.add("pop rbx");
+                _text.add("pop rax");
+                _text.add("shl rax, rbx");
+                _text.add("push rax");
+           }     
         }
-
         return data;
     }
     @Override
@@ -111,6 +137,7 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
     }
     @Override
     public Object visit(ASTexpressionDef node, Object data) {
+
         return super.visit(node, data);
     }
     @Override
@@ -123,7 +150,9 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
         return super.visit(node, data);
     }
     @Override
-    public Object visit(ASTparamDef node, Object data) {
+    public Object visit(ASTparamDef node, Object data) 
+    {
+        
         Object res = super.visit(node, data);
 
         SymbolTableEntry e = new SymbolTableEntry(node.firstToken.next.image, node.firstToken.image, this.stackIndex);
@@ -180,7 +209,6 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
     public Object visit(ASTvarDefineDef node, Object data) 
     {
 
-
         boolean isInt = node.firstToken.image.equals("int");
         if (isInt)
             this.stackIndex+=4;
@@ -232,8 +260,8 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
     public Object visit(ASTaddExpressionDef node, Object data) {
         data = node.children[0].jjtAccept(this, data);
         if (node.children.length > 1)
-        {      String e= node.firstToken.next.image;
-
+        {  
+            String e= node.firstToken.next.image;
             if(e.equals("+"))
            {
                 data = node.children[1].jjtAccept(this, data);
@@ -269,6 +297,7 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
 
     @Override
     public Object visit(ASTconstExpressionDef node, Object data) {
+
         if (node.firstToken.kind == CLang.ID)
         {
             SymbolTableEntry e = resolve(node.firstToken.image);
@@ -287,13 +316,11 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
             _text.add("push rax");
 
         }
-
         if (node.firstToken.kind == CLang.NUMBER)
         {
             _text.add(String.format("mov rax, %s", node.firstToken.image));
             _text.add("push rax");
         }
-
         return super.visit(node, data);
     }
 
