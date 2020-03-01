@@ -1020,7 +1020,7 @@ void StatementDef() : {/*@bgen(jjtree) StatementDef */
 {/*@bgen(jjtree) StatementDef */
     try {
 /*@egen*/
-    listVarDefineDef()        <SEMICOLON>    |
+    listVarDefineDef()    <SEMICOLON>    |
     expressionDef()       <SEMICOLON>    |
     IfStatementDef()                     |
     ReturnStatementDef()  <SEMICOLON>    |

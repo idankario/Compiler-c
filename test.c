@@ -1,10 +1,9 @@
-int m()
-{
 
-}
 int main()
 {
 
-int x=3,f=5;
-f=4;
+    int x=4,y=3;
+    if(x==y)
+    y=5;
+    return 1;
 }

@@ -225,7 +225,7 @@ void IfStatementDef() : {}
 
 void StatementDef() : {}
 {
-    listVarDefineDef()        <SEMICOLON>    |
+    listVarDefineDef()    <SEMICOLON>    |
     expressionDef()       <SEMICOLON>    |
     IfStatementDef()                     |
     ReturnStatementDef()  <SEMICOLON>    |

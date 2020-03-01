@@ -76,6 +76,10 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
         System.err.println(String.format("Error: redeclaration of %s  with no linkage",s.nameId));     
         System.exit(1);
     }
+    public boolean isCondition(int s)
+    {
+        return(s==28||s==27||s==26);
+    }
     @Override
     public Object visit(ASTStart node, Object data) {
         _text.add("GLOBAL _start");
@@ -149,7 +153,20 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
     }
     @Override
     public Object visit(ASTbinaryExpressionEqDef node, Object data) {
-        return super.visit(node, data);
+        data = node.children[0].jjtAccept(this, data);
+        if (node.children.length > 1)
+        {  
+            String e= node.firstToken.next.image;
+           
+            if(e.equals("=="))
+            {
+               
+           
+
+           }
+   
+        }
+        return data;
     }
     @Override
     public Object visit(ASTbinaryBoolExpressionAndDef node, Object data) {
@@ -169,23 +186,28 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
     }
     @Override
     public Object visit(ASTidExpressionDef node, Object data) {
-
-          if(node.firstToken.kind==CLang.ID
-             && resolveId(node.firstToken.image)==null)
-          {
+        SymbolTableEntry e = resolveId(node.firstToken.image);
+        if(e==null)
+        {
             System.err.println(String.format("error:Variable %s undeclared (first use in this function) at %d : %d",
                                                 node.firstToken.image,
                                                 node.firstToken.beginLine,
                                                 node.firstToken.beginColumn));
             System.exit(1);
         }
-      
+       
+       
         return super.visit(node, data);
     }
     @Override
-    public Object visit(ASTassignExpressionDef node, Object data) {
+    public Object visit(ASTassignExpressionDef node, Object data) 
+    { 
+        if(isCondition(node.jjtGetParent().jjtGetParent().jjtGetParent().getId()))
+            return super.visit(node, data);
+        SymbolTableEntry e = resolveId(node.firstToken.image);
+        boolean isInt = e.typeId.equals("int");
+        _text.add(String.format("pop %s, %s  [rbp - %d]", isInt ? "eax" : "al", isInt ? "dword" : "byte", e.offset));
         Object o = super.visit(node, data);
-      
         return o;
     }
     @Override
@@ -231,7 +253,9 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
     @Override
     public Object visit(ASTvarAssignDefInInit node, Object data) 
     {   
+        
         return super.visit(node, data);
+        
     }
     @Override
     public Object visit(ASTlistVarDefineDef node, Object data) 
@@ -245,9 +269,7 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
             Token temp=node.firstToken.next;
             while(!(temp.kind == CLang.SEMICOLON))
             {
-                System.out.println(temp.image);
-                this.stackIndex+=memory;
-               
+                this.stackIndex+=memory;  
                 SymbolTableEntry e = new SymbolTableEntry(temp.image, typeT, this.stackIndex);
                 putId(e);
                 if (node.children.length > 0)
@@ -258,7 +280,14 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
                 } 
                 temp=temp.next;
                 while(temp.image.equals("=")||temp.image.equals(",")||temp.kind==CLang.NUMBER)
+                {
+                    if(temp.kind==CLang.NUMBER)
+                    {
+                        _text.add(String.format("mov rax, %s", temp.image));
+                        _text.add("push rax");
+                    }
                     temp=temp.next;
+                }
             
             }
         
@@ -286,6 +315,7 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
         }
         return data;
     }
+
     @Override
     public Object visit(ASTStatementBlockDef node, Object data) {
         return super.visit(node, data);
@@ -336,22 +366,18 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
                 _text.add("pop rax");
                 _text.add("sub rax, rbx");
                 _text.add("push rax");
-           }
-            
+           }  
         }
 
         return data;
     }
     @Override
     public Object visit(ASTIfStatementDef node, Object data) {
-        data = node.children[0].jjtAccept(this, data);
-        if (node.children.length > 1)
-        {
-            data = node.children[1].jjtAccept(this, data);
-            _text.add(node.firstToken.image);
-            _text.add("if");
-        }
-        return data;
+        _text.add("sffsf");
+        Object o = super.visit(node, data);
+        _text.add("sffsf");
+   
+        return o;
     }
 
     @Override
@@ -368,12 +394,15 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
                                                     node.firstToken.beginColumn));
                 System.exit(-1);
             }
+            else
+            {
+                boolean isInt = e.typeId.equals("int");
+                _text.add(String.format("mov %s, %s [rbp - %d]", isInt ? "eax" : "al", 
+                                        isInt ? "dword" : "byte", e.offset));
 
-            boolean isInt = e.typeId.equals("int");
-
-            _text.add(String.format("mov %s, %s [rbp - %d]", isInt ? "eax" : "al", isInt ? "dword" : "byte", e.offset));
-            _text.add("push rax");
-
+                _text.add("push rax");
+                return super.visit(node, data);
+            }
         }
         if (node.firstToken.kind == CLang.NUMBER)
         {
