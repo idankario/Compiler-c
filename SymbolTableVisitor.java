@@ -46,14 +46,28 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
         this._data = new Vector<>();
     }
 
-
-
-    public SymbolTableEntry resolve(String s) 
+    public SymbolTableEntry resolveFunction(String s) 
     {
         return symbols.get(s);
     }
 
-    public void put(SymbolTableEntry s)
+    public void putFunction(SymbolTableEntry s)
+    {
+        if(symbols.get(s.functionName)==null)
+        {
+            symbols.put(s.functionName, s);
+            return;
+        }
+        System.err.println(String.format("Error: redeclaration of %s  with no linkage",s.nameId));     
+        System.exit(1);
+    }
+
+    public SymbolTableEntry resolveId(String s) 
+    {
+        return symbols.get(s);
+    }
+
+    public void putId(SymbolTableEntry s)
     {
         if(symbols.get(s.nameId)==null)
         {
@@ -161,7 +175,7 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
     {
 
         if(node.firstToken.kind==CLang.ID
-         && resolve(node.firstToken.image)==null)
+         && resolveId(node.firstToken.image)==null)
         {
             System.err.println(String.format("error:Variable %s undeclared (first use in this function) at %d : %d",
                                                 node.firstToken.image,
@@ -186,7 +200,7 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
         Object res = super.visit(node, data);
         SymbolTableEntry e = new SymbolTableEntry(node.firstToken.next.image, node.firstToken.image, this.stackIndex);
         this.stackIndex += 4;
-        put(e);
+        putId(e);
         return res;
     }
     @Override
@@ -230,7 +244,7 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
                 _text.add(String.format("mov %s [rbp - %d], %s", isInt ? "dword" : "byte", e.offset, isInt ? "eax" : "al"));
             } 
             
-            put(e);
+            putId(e);
         
         }
         return data;      
@@ -254,7 +268,7 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
             _text.add(String.format("mov %s [rbp - %d], %s", isInt ? "dword" : "byte", e.offset, isInt ? "eax" : "al"));
         }
 
-        put(e);
+        putId(e);
         
         return data;
     }
@@ -331,7 +345,7 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
        
         if (node.firstToken.kind == CLang.ID)
         {
-            SymbolTableEntry e = resolve(node.firstToken.image);
+            SymbolTableEntry e = resolveId(node.firstToken.image);
             if (e == null)
             {
                 System.err.println(String.format("Variable %s is not defined at %d : %d",
