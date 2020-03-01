@@ -12,19 +12,33 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
 
     public static class SymbolTableEntry
     {
-        public String name;
-        public String type;
+        public String nameId;
+        public String typeId;
+        public String functionName;
+        public String functionType;
         public int offset;
 
-        public SymbolTableEntry(String name, String type, int offset)
+        public SymbolTableEntry(int offset,String functionName, String functionType)
         {
-            this.name = name;
-            this.type = type;
+            this.nameId = "";
+            this.typeId = "";
+            this.functionName = functionName;
+            this.functionType = functionType;
+            this.offset = offset;
+        }
+        public SymbolTableEntry(String nameId, String typeId,int offset)
+        {
+            this.nameId = nameId;
+            this.typeId = typeId;
+            this.functionName = "";
+            this.functionType = "";
             this.offset = offset;
         }
     }
 
+
     HashMap<String, SymbolTableEntry> symbols = new HashMap<>();
+   
 
     public SymbolTableVisitor() 
     {
@@ -41,12 +55,12 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
 
     public void put(SymbolTableEntry s)
     {
-        if(symbols.get(s.name)==null)
+        if(symbols.get(s.nameId)==null)
         {
-            symbols.put(s.name, s);
+            symbols.put(s.nameId, s);
             return;
         }
-        System.err.println(String.format("Error: redeclaration of %s  with no linkage",s.name));     
+        System.err.println(String.format("Error: redeclaration of %s  with no linkage",s.nameId));     
         System.exit(1);
     }
     @Override
@@ -327,7 +341,7 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
                 System.exit(-1);
             }
 
-            boolean isInt = e.type.equals("int");
+            boolean isInt = e.typeId.equals("int");
 
             _text.add(String.format("mov %s, %s [rbp - %d]", isInt ? "eax" : "al", isInt ? "dword" : "byte", e.offset));
             _text.add("push rax");
