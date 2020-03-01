@@ -67,7 +67,7 @@ void idExpressionDef() : {}
 
 void constExpressionDef() : {}
 {
-    <ID>                                         |
+    <ID>                                        |
     <NUMBER>                                    |
     <CHAR_VALUE>                                
 }
@@ -181,7 +181,7 @@ void functionDef() : {}
 
 void sourceCodeDef() : {}
 {   
-    LOOKAHEAD( varDefineDef() <SEMICOLON> ) varDefineDef() <SEMICOLON> | functionDef()
+    LOOKAHEAD( listVarDefineDef() <SEMICOLON> ) listVarDefineDef() <SEMICOLON> | functionDef()
 }
 
 void Start() : {}
@@ -225,14 +225,13 @@ void IfStatementDef() : {}
 
 void StatementDef() : {}
 {
-    varDefineDef()        <SEMICOLON>    |
+    listVarDefineDef()        <SEMICOLON>    |
     expressionDef()       <SEMICOLON>    |
     IfStatementDef()                     |
     ReturnStatementDef()  <SEMICOLON>    |
     ForStatementDef()                    |
     WhileStatementDef()
 }
-
 
 
 

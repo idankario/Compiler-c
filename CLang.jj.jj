@@ -106,7 +106,7 @@ void constExpressionDef() : {/*@bgen(jjtree) constExpressionDef */
 {/*@bgen(jjtree) constExpressionDef */
     try {
 /*@egen*/
-    <ID>                                         |
+    <ID>                                        |
     <NUMBER>                                    |
     <CHAR_VALUE>/*@bgen(jjtree)*/
     } finally {
@@ -780,7 +780,7 @@ void sourceCodeDef() : {/*@bgen(jjtree) sourceCodeDef */
 {/*@bgen(jjtree) sourceCodeDef */
     try {
 /*@egen*/   
-    LOOKAHEAD( varDefineDef() <SEMICOLON> ) varDefineDef() <SEMICOLON> | functionDef()/*@bgen(jjtree)*/
+    LOOKAHEAD( listVarDefineDef() <SEMICOLON> ) listVarDefineDef() <SEMICOLON> | functionDef()/*@bgen(jjtree)*/
     } catch (Throwable jjte000) {
       if (jjtc000) {
         jjtree.clearNodeScope(jjtn000);
@@ -1020,7 +1020,7 @@ void StatementDef() : {/*@bgen(jjtree) StatementDef */
 {/*@bgen(jjtree) StatementDef */
     try {
 /*@egen*/
-    varDefineDef()        <SEMICOLON>    |
+    listVarDefineDef()        <SEMICOLON>    |
     expressionDef()       <SEMICOLON>    |
     IfStatementDef()                     |
     ReturnStatementDef()  <SEMICOLON>    |

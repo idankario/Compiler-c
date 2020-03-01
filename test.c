@@ -1,11 +1,10 @@
+int m()
+{
+
+}
 int main()
 {
 
-int x=3;
-int y=4;
-y=5;
-(((Z)))=3;
-
-if(x==y)
-y=3;
+int x=3,f=5;
+f=4;
 }

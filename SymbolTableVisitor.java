@@ -18,13 +18,12 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
         public String functionType;
         public int offset;
 
-        public SymbolTableEntry(int offset,String functionName, String functionType)
+        public SymbolTableEntry(String functionName, String functionType)
         {
             this.nameId = "";
             this.typeId = "";
             this.functionName = functionName;
             this.functionType = functionType;
-            this.offset = offset;
         }
         public SymbolTableEntry(String nameId, String typeId,int offset)
         {
@@ -99,6 +98,16 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
     }
     @Override
     public Object visit(ASTfunctionCall node, Object data) {
+        if(node.firstToken.kind==CLang.ID
+        && resolveFunction(node.firstToken.image)==null)
+       {
+       
+           System.err.println(String.format("Error:Function %s undeclared  at %d : %d",
+                                               node.firstToken.image,
+                                               node.firstToken.beginLine,
+                                               node.firstToken.beginColumn));
+           System.exit(1);
+       }
         return super.visit(node, data);
     }
     @Override
@@ -160,29 +169,30 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
     }
     @Override
     public Object visit(ASTidExpressionDef node, Object data) {
-        System.out.println("fssffdfdd");
-        System.out.println(node.firstToken.image);
-        return super.visit(node, data);
-    }
-    @Override
-    public Object visit(ASTassignExpressionDef node, Object data) {
-        Object o = super.visit(node, data);
-        System.out.println(node.firstToken.image);
-        return o;
-    }
-    @Override
-    public Object visit(ASTexpressionDef node, Object data)
-    {
 
-        if(node.firstToken.kind==CLang.ID
-         && resolveId(node.firstToken.image)==null)
-        {
+          if(node.firstToken.kind==CLang.ID
+             && resolveId(node.firstToken.image)==null)
+          {
             System.err.println(String.format("error:Variable %s undeclared (first use in this function) at %d : %d",
                                                 node.firstToken.image,
                                                 node.firstToken.beginLine,
                                                 node.firstToken.beginColumn));
             System.exit(1);
         }
+      
+        return super.visit(node, data);
+    }
+    @Override
+    public Object visit(ASTassignExpressionDef node, Object data) {
+        Object o = super.visit(node, data);
+      
+        return o;
+    }
+    @Override
+    public Object visit(ASTexpressionDef node, Object data)
+    {
+
+      
         return super.visit(node, data);
     }
     @Override
@@ -200,12 +210,14 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
         Object res = super.visit(node, data);
         SymbolTableEntry e = new SymbolTableEntry(node.firstToken.next.image, node.firstToken.image, this.stackIndex);
         this.stackIndex += 4;
+  
         putId(e);
         return res;
     }
     @Override
     public Object visit(ASTfunctionDef node, Object data)
      {
+        SymbolTableEntry e = new SymbolTableEntry(node.firstToken.next.image, node.firstToken.image);
         _text.add(String.format("%s:" ,node.firstToken.next.image));
         _text.add("push rbp");
         _text.add("mov rbp, rsp");
@@ -227,32 +239,36 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
         
         if(node.children.length > 0)
         {
-            boolean isInt = node.firstToken.image.equals("int");
-            if (isInt)
-                this.stackIndex+=4;
-            else
-                this.stackIndex++;
-            Token c=node.firstToken.next;
-    
-            
-            SymbolTableEntry e = new SymbolTableEntry(node.firstToken.next.image, node.firstToken.image, this.stackIndex);
-            
-            if (node.children.length > 0)
+            String typeT = node.firstToken.image;
+            boolean isInt = typeT.equals("int");
+            int memory= isInt ? 4 : 1;
+            Token temp=node.firstToken.next;
+            while(!(temp.kind == CLang.SEMICOLON))
             {
-                data = node.children[0].jjtAccept(this, data);
-                _text.add("pop rax");
-                _text.add(String.format("mov %s [rbp - %d], %s", isInt ? "dword" : "byte", e.offset, isInt ? "eax" : "al"));
-            } 
+                System.out.println(temp.image);
+                this.stackIndex+=memory;
+               
+                SymbolTableEntry e = new SymbolTableEntry(temp.image, typeT, this.stackIndex);
+                putId(e);
+                if (node.children.length > 0)
+                {
+                    data = node.children[0].jjtAccept(this, data);
+                    _text.add("pop rax");
+                    _text.add(String.format("mov %s [rbp - %d], %s", isInt ? "dword" : "byte", e.offset, isInt ? "eax" : "al"));
+                } 
+                temp=temp.next;
+                while(temp.image.equals("=")||temp.image.equals(",")||temp.kind==CLang.NUMBER)
+                    temp=temp.next;
             
-            putId(e);
+            }
         
         }
         return data;      
     }
+ 
     @Override
     public Object visit(ASTvarDefineDef node, Object data) 
     {
-
         boolean isInt = node.firstToken.image.equals("int");
         if (isInt)
             this.stackIndex+=4;
@@ -260,16 +276,14 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
             this.stackIndex++;
 
         SymbolTableEntry e = new SymbolTableEntry(node.firstToken.next.image, node.firstToken.image, this.stackIndex);
-        
+   
+        putId(e);
         if (node.children.length > 0)
         {
             data = node.children[0].jjtAccept(this, data);
             _text.add("pop rax");
             _text.add(String.format("mov %s [rbp - %d], %s", isInt ? "dword" : "byte", e.offset, isInt ? "eax" : "al"));
         }
-
-        putId(e);
-        
         return data;
     }
     @Override
