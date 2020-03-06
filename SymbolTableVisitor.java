@@ -260,24 +260,23 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
     @Override
     public Object visit(ASTlistVarDefineDef node, Object data) 
     {
-        
+        Token temp=null;
         if(node.children.length > 0)
         {
             String typeT = node.firstToken.image;
             boolean isInt = typeT.equals("int");
             int memory= isInt ? 4 : 1;
-            Token temp=node.firstToken.next;
-            while(!(temp.kind == CLang.SEMICOLON))
+            temp=node.firstToken.next;
+            while(temp.kind != CLang.SEMICOLON)
             {
                 this.stackIndex+=memory;  
                 SymbolTableEntry e = new SymbolTableEntry(temp.image, typeT, this.stackIndex);
                 putId(e);
-                if (node.children.length > 0)
-                {
-                    data = node.children[0].jjtAccept(this, data);
+              
+                    data = node.children[0].jjtAccept(this, temp);
                     _text.add("pop rax");
                     _text.add(String.format("mov %s [rbp - %d], %s", isInt ? "dword" : "byte", e.offset, isInt ? "eax" : "al"));
-                } 
+                
                 temp=temp.next;
                 while(temp.image.equals("=")||temp.image.equals(",")||temp.kind==CLang.NUMBER)
                 {
@@ -292,7 +291,7 @@ public class SymbolTableVisitor extends CLangDefaultVisitor {
             }
         
         }
-        return data;      
+        return temp;      
     }
  
     @Override
